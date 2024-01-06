@@ -1,10 +1,23 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { formSchema } from "./schema";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
+import { useMessage } from "@/hooks/message-hook";
+
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { formSchema } from "./schema";
+import ReactMarkdown from "react-markdown";
+import axios from "axios";
+import { MessageSquareText } from "lucide-react";
+import { Prism } from "react-syntax-highlighter";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import CopyBadge from "./CopyBadge";
+
+import { cn, getPreviousElementFromList } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,17 +28,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import ReactMarkdown from "react-markdown";
-import { useEffect } from "react";
-import axios from "axios";
-import { useMessage } from "@/hooks/message-hook";
-import { MessageSquareText } from "lucide-react";
-import { Prism } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { cn } from "@/lib/utils";
-import CopyBadge from "./CopyBadge";
 
 export function InputForm() {
   const messageState = useMessage();
@@ -40,11 +42,6 @@ export function InputForm() {
     },
   });
 
-  useEffect(() => {
-    messageState.addMessage("gemini", localStorage.getItem("example1")!);
-    messageState.addMessage("gemini", localStorage.getItem("example2")!);
-  }, []);
-
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -54,10 +51,23 @@ export function InputForm() {
         top: document.body.scrollHeight,
         behavior: "smooth",
       });
+      const localInputList = [
+        ...messageState.message,
+        ["user", values.chatInput],
+      ];
       const response = await axios.post("/api/gemini", {
-        chatInput: values.chatInput,
+        chatInput: getPreviousElementFromList(
+          localInputList.map((msg) => {
+            if (msg[0] === "user") {
+              return "This is user's previous input chat: " + msg[1];
+            } else {
+              return "This is your previous response: " + msg[1];
+            }
+          }),
+          7
+        ),
       });
-      localStorage.setItem("example2", response.data);
+
       messageState.addMessage("gemini", response.data);
       form.reset();
       window.scrollTo({

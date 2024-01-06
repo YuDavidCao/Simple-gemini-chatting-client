@@ -4,8 +4,8 @@ import React from "react";
 import NavBar from "./Navbar";
 import { Menu } from "lucide-react";
 import { InputForm } from "./InputField";
-import LeftSideBar from "./LeftSideBar";
-import RightSideBar from "./RightSideBar";
+import LeftSideBar from "./(LeftSideBar)/LeftSideBar";
+import RightSideBar from "./(RightSideBar)/RightSideBar";
 
 const Chat = ({ children }: { children: React.ReactNode }) => {
   return (
