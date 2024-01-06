@@ -16,7 +16,6 @@ import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 import CopyBadge from "./CopyBadge";
 
 import { cn, getPreviousElementFromList } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -28,14 +27,14 @@ import {
 } from "@/components/ui/form";
 import Loader from "@/components/Loader";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function ChatSection() {
   const currentPerserveLength = 7;
 
   const messageState = useMessage();
-
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<Boolean>(false);
+  // const router = useRouter();
   const { toast } = useToast();
 
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -56,7 +55,6 @@ export function ChatSection() {
         textAreaRef.current === document.activeElement &&
         !event.shiftKey
       ) {
-        console.log(2);
         onSubmit(form.getValues());
       }
     };
@@ -66,9 +64,8 @@ export function ChatSection() {
     };
   }, []);
 
-  const isLoading = form.formState.isSubmitting;
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     try {
       messageState.addMessage("user", values.chatInput);
       window.scrollTo({
@@ -93,6 +90,7 @@ export function ChatSection() {
       });
       console.log(response.data);
       messageState.addMessage("gemini", response.data);
+      setIsLoading(false);
       form.reset();
       window.scrollTo({
         top: document.body.scrollHeight,

@@ -45,12 +45,16 @@ export default function AddCommandForm({}: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof schema>) => {
-    
-    localStorage.setItem(values.prefixKey, values.prefixString);
+    prefixUltil.addPrefixKeyPair(
+      values.prefixKey,
+      values.prefixString,
+      localStorage
+    );
+    window.dispatchEvent(new Event("storage"));
   };
 
   return (
-    <div className="fixed bottom-0 right-0 w-[15vw] p-4">
+    <div className="">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
           <FormField

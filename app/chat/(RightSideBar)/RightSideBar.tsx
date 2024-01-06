@@ -1,14 +1,89 @@
 "use client";
 
-import React from "react";
-
+import React, { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import AddCommandForm from "./AddCommandForm";
+import * as prefixUltil from "@/lib/prefix";
+import { Button } from "@/components/ui/button";
 
 type Props = {};
 
 export default function RightSideBar({}: Props) {
+  const [uiUpdater, setUIUpdater] = useState(true);
+
+  const [prefixPairList, setPrefixPairList] = useState<
+    prefixUltil.PrefixPair[]
+  >([]);
+
+  const handleStorage = () => {
+    setPrefixPairList(
+      prefixUltil.getPrefixValuePairList(
+        prefixUltil.getPrefixKeyList(localStorage),
+        localStorage
+      )
+    );
+    setUIUpdater(!uiUpdater);
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorage);
+      setPrefixPairList(
+        prefixUltil.getPrefixValuePairList(
+          prefixUltil.getPrefixKeyList(localStorage),
+          localStorage
+        )
+      );
+    }
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [uiUpdater]);
+
+  const deleteAllPrefixes = () => {
+    localStorage.clear();
+    window.dispatchEvent(new Event("storage"));
+  };
+
   return (
-    <div className="hidden h-full md:flex md:w-[15vw] md:flex-col md:fixed md:inset-y-0 right-0 z-80 bg-gray-900 text-white p-10">
+    <div className="hidden h-full md:flex md:w-[15vw] md:flex-col md:fixed md:inset-y-0 right-0 bg-gray-900 text-white p-4 gap-2">
+      <div className="lg:flex-row flex-col flex lg:justify-between justify-center items-center">
+        <div className="font-bold text-lg">Prefixes</div>
+        <Button
+          className="bg-white text-black h-6 self-center hover:bg-slate-400"
+          onClick={deleteAllPrefixes}
+        >
+          Clear prefixes
+        </Button>
+      </div>
+      <hr></hr>
+      <div className="h-full overflow-auto flex flex-col">
+        <div>
+          {prefixPairList.length === 0 && (
+            <div className="flex items-center justify-center md:text-base text-sm">
+              <div>There are no prefixes yet</div>
+            </div>
+          )}
+          {prefixPairList.length !== 0 &&
+            prefixPairList.map(
+              (prefixPair: prefixUltil.PrefixPair, index: number) => {
+                return (
+                  <div
+                    key={uuidv4()}
+                    className="w-[95%] rounded-md bg-white flex flex-col text-black my-2"
+                  >
+                    <span className="font-bold text-lg p-2">
+                      {prefixPair.key + ":"}
+                    </span>
+                    <p className="px-2 pb-2 text-sm">{prefixPair.value}</p>
+                  </div>
+                );
+              }
+            )}
+        </div>
+      </div>
+      <div className="font-bold text-lg">Add new prefix</div>
+      <hr></hr>
       <AddCommandForm></AddCommandForm>
     </div>
   );
