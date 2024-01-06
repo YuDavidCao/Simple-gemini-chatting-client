@@ -26,9 +26,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import Loader from "@/components/timer";
+import Loader from "@/components/Loader";
+import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useRef } from "react";
 
-export function InputForm() {
+export function ChatSection() {
   const currentPerserveLength = 7;
 
   const messageState = useMessage();
@@ -36,12 +38,33 @@ export function InputForm() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       chatInput: "",
     },
   });
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // console.log(document.activeElement);
+      if (
+        event.key === "Enter" &&
+        textAreaRef.current === document.activeElement &&
+        !event.shiftKey
+      ) {
+        console.log(2);
+        onSubmit(form.getValues());
+      }
+    };
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []);
 
   const isLoading = form.formState.isSubmitting;
 
@@ -65,7 +88,7 @@ export function InputForm() {
               return "This is your previous response: " + msg[1];
             }
           }),
-          7
+          currentPerserveLength
         ),
       });
       console.log(response.data);
@@ -81,7 +104,13 @@ export function InputForm() {
         description: JSON.stringify(error),
       });
     } finally {
-      router.refresh();
+      // router.refresh();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
     }
   };
 
@@ -100,12 +129,14 @@ export function InputForm() {
                   <>
                     <span className="font-bold">User: &nbsp;</span>
                     <br></br>
-                    <span>{message[1]}</span>
+                    <br></br>
+                    <span className="whitespace-pre-wrap">{message[1]}</span>
                   </>
                 )}
                 {message[0] == "gemini" && (
                   <>
                     <span className="font-bold">Gemini: &nbsp;</span>
+                    <br></br>
                     <ReactMarkdown
                       components={{
                         pre: ({ node, ...props }) => {
@@ -180,6 +211,7 @@ export function InputForm() {
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-8 flex"
+              ref={formRef}
             >
               <div className="w-full pr-4">
                 <FormField
@@ -189,11 +221,13 @@ export function InputForm() {
                     <FormItem>
                       <FormLabel>Input Prompt</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="What is bridge in german?"
-                          disabled={isLoading}
+                        <Textarea
                           {...field}
-                        ></Input>
+                          placeholder="What is bridge in german?"
+                          className="text-black"
+                          onKeyDown={handleKeyDown}
+                          ref={textAreaRef}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

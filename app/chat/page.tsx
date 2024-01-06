@@ -3,7 +3,7 @@
 import React from "react";
 import NavBar from "./Navbar";
 import { Menu } from "lucide-react";
-import { InputForm } from "./InputField";
+import { ChatSection } from "./ChatSection";
 import LeftSideBar from "./(LeftSideBar)/LeftSideBar";
 import RightSideBar from "./(RightSideBar)/RightSideBar";
 
@@ -22,7 +22,7 @@ const Chat = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center justify-center text-xl font-bold pb-20">
               Chat With Gemini
             </div>
-            <InputForm></InputForm>
+            <ChatSection></ChatSection>
           </div>
         </div>
       </main>

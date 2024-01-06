@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
+import * as prefixUltil from "@/lib/prefix";
 
 type Props = {};
 
@@ -44,6 +45,7 @@ export default function AddCommandForm({}: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof schema>) => {
+    
     localStorage.setItem(values.prefixKey, values.prefixString);
   };
 
@@ -74,7 +76,7 @@ export default function AddCommandForm({}: Props) {
                   <Textarea
                     {...field}
                     placeholder="Type your message here."
-                    className="text-black"
+                    className="text-black h-40"
                   />
                 </FormControl>
                 <FormMessage />
