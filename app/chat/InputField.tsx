@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
-import { useEffect } from "react";
 import { useMessage } from "@/hooks/message-hook";
 
 import * as z from "zod";
@@ -22,14 +21,16 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import Loader from "@/components/timer";
 
 export function InputForm() {
+  const currentPerserveLength = 7;
+
   const messageState = useMessage();
 
   const router = useRouter();
@@ -67,7 +68,7 @@ export function InputForm() {
           7
         ),
       });
-
+      console.log(response.data);
       messageState.addMessage("gemini", response.data);
       form.reset();
       window.scrollTo({
@@ -88,9 +89,13 @@ export function InputForm() {
     <>
       <div className="pb-10">
         {messageState.message.map((message, index) => {
+          let bgColor = "rounded-md p-2 m-4";
+          if (messageState.message.length - index > currentPerserveLength - 1) {
+            bgColor = "rounded-md p-2 m-4 bg-red-500/10 bg-red-500/10";
+          }
           return (
             <div key={index}>
-              <div className="rounded-md p-2 m-4">
+              <div className={bgColor}>
                 {message[0] == "user" && (
                   <>
                     <span className="font-bold">User: &nbsp;</span>
@@ -103,11 +108,13 @@ export function InputForm() {
                     <span className="font-bold">Gemini: &nbsp;</span>
                     <ReactMarkdown
                       components={{
-                        pre: ({ node, ...props }) => (
-                          <div className="overflow-auto w-full my-2 bg-black/10 p-2 rounded-md">
-                            <pre {...props} />
-                          </div>
-                        ),
+                        pre: ({ node, ...props }) => {
+                          return (
+                            <div className="overflow-auto w-full my-2 bg-black/10 p-2 rounded-md">
+                              <pre {...props} />
+                            </div>
+                          );
+                        },
                         li: ({ node, ...props }) => (
                           <div className="py-2 flex">
                             <span className="font-bold text-lg">•</span>
@@ -165,11 +172,7 @@ export function InputForm() {
           );
         })}
       </div>
-      {isLoading && (
-        <div className="p-8 rounded-lg w-full flex items-center justify-center bg-muted pb-40">
-          Gemini is responding...
-        </div>
-      )}
+      {isLoading && <Loader></Loader>}
       <div className="h-10"></div>
       <div className="fixed bottom-0 w-[60vw] opacity-transition">
         <div className="pt-20 pb-10">
@@ -190,7 +193,7 @@ export function InputForm() {
                           placeholder="What is bridge in german?"
                           disabled={isLoading}
                           {...field}
-                        />
+                        ></Input>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

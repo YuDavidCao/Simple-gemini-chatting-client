@@ -12,10 +12,6 @@ import {
 export async function POST(req: Request) {
   const { chatInput } = await req.json();
 
-  console.log("!");
-  console.log(chatInput);
-  console.log("!");
-
   const chatInputString: string = chatInput.join(" ");
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);

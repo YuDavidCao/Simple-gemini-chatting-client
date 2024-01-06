@@ -56,7 +56,7 @@ export default function AddCommandForm({}: Props) {
             name="prefixKey"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Prefix Name</FormLabel>
+                <FormLabel>Prefix Key</FormLabel>
                 <FormControl>
                   <Input placeholder="mcq" {...field} className="text-black" />
                 </FormControl>
