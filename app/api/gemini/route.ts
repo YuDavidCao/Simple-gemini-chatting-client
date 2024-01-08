@@ -10,7 +10,7 @@ import {
 } from "@google/generative-ai";
 
 export async function POST(req: Request) {
-  const { chatInput } = await req.json();
+  const { chatInput, temperature } = await req.json();  
 
   const chatInputString: string = chatInput.join(" ");
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   const generationConfig = {
-    temperature: 0.9,
+    temperature: temperature,
     topK: 1,
     topP: 1,
     maxOutputTokens: 2048,

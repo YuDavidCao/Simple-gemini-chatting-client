@@ -7,7 +7,6 @@ import { useMessage } from "@/hooks/message-hook";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formSchema } from "./schema";
 import ReactMarkdown from "react-markdown";
 import axios from "axios";
 import { MessageSquareText } from "lucide-react";
@@ -28,10 +27,9 @@ import {
 import Loader from "@/components/Loader";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
+import * as prefixUltil from "@/lib/prefix";
 
 export function ChatSection() {
-  const currentPerserveLength = 7;
-
   const messageState = useMessage();
   const [isLoading, setIsLoading] = useState<Boolean>(false);
   // const router = useRouter();
@@ -39,6 +37,10 @@ export function ChatSection() {
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const formSchema = z.object({
+    chatInput: z.string().min(1, { message: "Field cannot be empty" }),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,14 +69,19 @@ export function ChatSection() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      messageState.addMessage("user", values.chatInput);
+      const parsedChatInput = prefixUltil.prefixParser(
+        values.chatInput,
+        localStorage
+      );
+      console.log(parsedChatInput);
+      messageState.addMessage("user", parsedChatInput);
       window.scrollTo({
         top: document.body.scrollHeight,
         behavior: "smooth",
       });
       const localInputList = [
         ...messageState.message,
-        ["user", values.chatInput],
+        ["user", parsedChatInput],
       ];
       const response = await axios.post("/api/gemini", {
         chatInput: getPreviousElementFromList(
@@ -85,8 +92,9 @@ export function ChatSection() {
               return "This is your previous response: " + msg[1];
             }
           }),
-          currentPerserveLength
+          Number(localStorage.getItem("|PreserveLength|"))
         ),
+        temperature: Number(localStorage.getItem("|Temperature|")),
       });
       console.log(response.data);
       messageState.addMessage("gemini", response.data);
@@ -117,7 +125,10 @@ export function ChatSection() {
       <div className="pb-10">
         {messageState.message.map((message, index) => {
           let bgColor = "rounded-md p-2 m-4";
-          if (messageState.message.length - index > currentPerserveLength - 1) {
+          if (
+            messageState.message.length - index >
+            Number(localStorage.getItem("|PreserveLength|")) - 1
+          ) {
             bgColor = "rounded-md p-2 m-4 bg-red-500/10 bg-red-500/10";
           }
           return (
@@ -128,7 +139,7 @@ export function ChatSection() {
                     <span className="font-bold">User: &nbsp;</span>
                     <br></br>
                     <br></br>
-                    <span className="whitespace-pre-wrap">{message[1]}</span>
+                    <span className="whitespace-pre-line">{message[1]}</span>
                   </>
                 )}
                 {message[0] == "gemini" && (
